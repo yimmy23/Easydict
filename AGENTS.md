@@ -25,9 +25,7 @@ Easydict 是一款 macOS 词典和翻译应用，支持查词、文本翻译、�
 - 修改产品代码、跨功能行为或模块边界：`docs/architecture/overview.md`。
 - Planning 子代理：遵循 `docs/agents/request-boundary.md` 中的启动契约，并使用
   `.codex/agents/planner.toml`。
-- 具体 Skill：目标 `.agents/skills/<skill>/SKILL.md` 以及对应的
-  `.agents/overrides/<skill>/<overlay>.md`；使用 `fireworks-tech-graph` 时还要读取
-  `.agents/overrides/fireworks-tech-graph/layout.md`。
+- 具体 Skill：`.agents/skills/<skill>/SKILL.md`。
 - 发布：`.agents/skills/release-easydict/SKILL.md`。
 - 创建 GitHub PR：`.agents/skills/submit-pr/SKILL.md`；Easydict PR 参数遵循
   `docs/agents/git-workflow.md`。

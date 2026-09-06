@@ -48,12 +48,10 @@
 
 ## Skill 与兼容入口
 
-- 仓库维护的 Skill 存放在 `.agents/skills/`；上游 Skill 的本地补充存放在
-  `.agents/overrides/`。
-- 仓库维护的 skill、reference 和 overlay 修改遵循用户当前请求的语言；命令、路径、代码标识、API
-  字段和固定输出契约保留原文。直接镜像的上游 skill 保留上游文档语言。
-- 不要修改复制的上游 skill；执行目标 skill 前先阅读其 `SKILL.md`，再读取根
-  `AGENTS.md` 指定的 overlay。
+- 仓库维护的 Skill 存放在 `.agents/skills/`。
+- 仓库维护的 skill 和 reference 修改遵循用户当前请求的语言；命令、路径、代码标识、
+  API 字段和固定输出契约保留原文。直接镜像的上游 skill 保留上游文档语言。
+- 不要修改复制的上游 skill；执行目标 skill 前先阅读其 `SKILL.md`。
 - `.claude/CLAUDE.md` 是指向根目录规范 `AGENTS.md` 的符号链接，`.claude/skills` 指向
   `.agents/skills`；平台专用 Agent wrapper 应路由到规范的本地 skill。
 
