@@ -1,6 +1,7 @@
 # Fireworks Tech Graph 布局规则
 
-本文件是 Easydict 仓库针对 `fireworks-tech-graph` skill 的本地 overlay。先阅读该 skill，再在为本仓库生成或编辑 SVG 技术图时应用这些规则。如果本文件与上游 skill 冲突，采用更严格的规则。
+为 Easydict 生成或编辑 SVG 技术图时，先阅读 `fireworks-tech-graph` Skill，再应用以下
+本地布局要求。规则冲突按根 `AGENTS.md` 及其请求边界处理。
 
 ## 布局约束
 

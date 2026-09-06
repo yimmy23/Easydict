@@ -1,6 +1,6 @@
 # Agent 覆盖规则
 
-这个目录存放当前仓库的 agent overlay 规则。它们用于补充上游 skill 的本地行为，避免把本地约束写进可能被 `skills add --force` 覆盖的 skill 镜像目录。
+这个目录存放当前仓库对上游 Skill 的本地补充，避免修改可能被更新覆盖的上游镜像。
 
 ## 使用方式
 
@@ -12,8 +12,7 @@
 
 ## 文件约定
 
-- 每个 overlay 放在对应目标 skill 的父目录下：
-  `.agents/overrides/<target>/`。
+- 按目标 Skill 分目录存放：`.agents/overrides/<target>/`。
 - 文件名使用简洁的主题名，例如 `layout.md`。
 - 文件内容应只描述当前仓库的局部约束，不复制整个上游 skill。
 - 上游 skill 更新后，优先检查 overlay 是否仍然需要保留或调整。
