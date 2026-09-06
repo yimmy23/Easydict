@@ -84,8 +84,8 @@
 - `git diff --check`：通过。
 - reviewer 增量复核：无有效 finding。
 - tester 最终复验：20 个测试通过，未访问真实 GitHub。
-- `quick_validate.py`：可用 Python 环境缺少 `PyYAML`，未完成；本次未改 Skill frontmatter，
-  已人工检查 Skill 名称、结构和引用。
+- `quick_validate.py`：可用 Python 环境缺少 `PyYAML`，未完成；后续文案修正使用 Ruby
+  YAML 解析 frontmatter，确认 Skill 名称和 description 有效。
 
 ## 完成条件
 
