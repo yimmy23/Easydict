@@ -15,7 +15,8 @@
 
 ## Git 交付顺序
 
-1. 第一次写入前记录 `initial_head`、初始 staged、unstaged、untracked、冲突和任务允许路径。
+1. 第一次写入前记录 `initial_head`、初始 staged、unstaged、untracked、冲突和任务允许路径；
+   对任务相关脏内容保留分层 diff/内容快照，不能仅凭路径重建任务归属。
 2. 按 `request-boundary.md` 区分普通只读分析与获准的工作流准备；写入和交付保护
    按 `execution-safety.md` 分别判断。不要将自动提交资格用于否决显式 staged 交付。
 3. `delivery` 使用
@@ -33,7 +34,8 @@
 - `HEAD` 未变化，当前索引无冲突，用户变更与 Agent 变更可以清晰分离；
 - Agent 产生了仓库文件差异，并已创建或更新同任务 history；
 - 允许路径和 Agent-owned paths 已明确，暂存后 staged paths 与预期集合完全一致；
-- 必要验证已完成且没有阻塞性失败；
+- 按 `build-and-test.md` 完成必要审查与验证，最终结果覆盖最终代码及测试，且没有
+  未处理的有效阻塞 finding 或验证失败；
 - 当前任务尚未执行过自动提交。
 
 `implementation` 的执行计划如实记录交付默认值及跨轮仍有效的限制。不能因为用户没有

@@ -2,11 +2,14 @@
 name: review-pr
 description: >
   默认在本地分支准备 GitHub pull request；明确要求时使用隔离 worktree，并可选择
-  合并最新 base 分支。根据 PR 上下文和实际代码变更生成严格审查。适用于本地 PR
-  checkout、worktree review、并行 review 或并发 review。
+  合并最新 base 分支。复用 review 核心审查准确远程代码，并自动 resolve 有证据的
+  已解决或不再适用线程；用户要求只读时禁用远程写入。适用于 GitHub PR review。
 ---
 
 # PR Review 工作流
+
+先读取通用核心 [`review`](../review/SKILL.md)。本 skill 只补充 GitHub 上下文、准备、
+线程维护和 PR 报告；本地工作树、提交、文件或模块 review 直接使用核心，不要求 PR。
 
 默认使用本地 checkout。只有用户明确要求 worktree、并行 review 或并发 review 时，
 才使用隔离 Git worktree。如果缺少 PR 引用或引用存在歧义，在改变 Git 状态前先询问。
@@ -20,13 +23,18 @@ description: >
 ## 请求与准备权限
 
 明确请求按本 skill review PR，包含下述本地准备流程所需的 remote 添加、fetch、
-安全分支创建或 fast-forward、upstream 设置和 checkout；这不授权产品修复或远程
-写入。worktree、latest-base 合并与冲突修复仍按下文对应条件单独判断。
+安全分支创建或 fast-forward、upstream 设置和 checkout。若用户/仓库已启用自动线程
+维护（Easydict 默认启用），还包含下述有证据的线程 resolve；未启用的其他仓库须取得
+该远程动作授权。此流程不授权产品修复、push、发布评论、approve、删除评论或关闭 PR。
+worktree、latest-base 合并与冲突修复仍按下文对应条件单独判断。
 
 仅要求方案或解释时不运行准备命令。用户要求不改变 Git 状态或不切分支时，优先遵守
 该限制，使用可访问的准确 PR diff、源码和评论进行只读检查；不要为满足默认流程绕过
 限制。只读证据不足时报告缺口，不声称已完成 checkout 验证。以下 checkout 步骤和
 禁止直接 review 已 fetch ref 的默认规则，仅适用于获准的本地准备模式。
+
+“只读”“不处理评论”等限制禁用自动 resolve；仅“不切分支”不自动禁用独立获准的
+线程维护。只规划本 skill 的改进不授权对真实 PR 执行 mutation。
 
 ## 安全约束
 
@@ -82,7 +90,7 @@ description: >
   均与所有开放评论不同的问题才能出现在 `Findings`。
 - 不使用“修复此问题”等含糊建议。存在多种有效方案时，推荐一种并说明重要取舍。
   如果修复取决于产品决策，给出条件选项，并在 `Open Questions` 中提出该决策。
-- 将修复建议视为 review 指导。除非用户明确要求，否则不要修改 PR；只有短代码示例
+- 将修复建议视为 review 指导。除获准的线程维护外，未经授权不要修改 PR；只有短代码示例
   能明显提高建议清晰度时才加入。
 
 ## 工作流
@@ -259,10 +267,13 @@ reviewer 必须判断评论属于 `reasonable`、`partially reasonable`、`unrea
 
 ```bash
 git fetch <base-remote> <base-branch>
-git diff --stat <base-remote>/<base-branch>...HEAD
-git diff --name-status <base-remote>/<base-branch>...HEAD
-git diff <base-remote>/<base-branch>...HEAD
+git diff --stat <base-sha>...<remote-head-sha>
+git diff --name-status <base-sha>...<remote-head-sha>
+git diff <base-sha>...<remote-head-sha>
 ```
+
+冻结 fetch 后的 base SHA 与准确 `headRefOid`。latest-base 模式不能用本地 merge HEAD
+替代远程 head；集成 diff 另行审查，并明确两种快照的证据归属。
 
 使用 `rg` 搜索周围源码、测试、配置、生成文件和文档。除非用户明确要求本地构建，PR
 review 期间不要运行 `xcodebuild`。验证状态重要时检查 PR checks：
@@ -273,7 +284,15 @@ gh pr checks <number> [--repo <base-owner>/<base-repo>]
 
 相关时运行 `git diff --check` 等轻量本地检查。
 
-### 5. 最终输出前刷新实时 PR 状态
+### 5. 证据驱动的线程维护
+
+收集或处理线程时读取 [`references/thread-resolution.md`](references/thread-resolution.md)，
+使用 `scripts/review_threads.py collect` 完成 thread 与 replies 的双层分页。
+对远程当前 head 上确实已修复或不再适用的问题生成证据绑定的 resolve plan；已获准时
+直接 apply，无需每条重复确认。`isOutdated`、绿色 CI、本地未推送修复或单纯不同意评论
+均不足以 resolve。存在实质未答复问题的线程保持开放。
+
+### 6. 最终输出前刷新实时 PR 状态
 
 编写最终回复前立即刷新所有可变 review 状态，即使初始检查全部通过：
 
@@ -392,6 +411,10 @@ Status: unresolved · current
 
 If there are no open review threads, write `No open review comments`.
 
+本轮已 resolve 的线程仍在本节单独标记“本轮已解决”，保留 permalink、原问题、
+代码证据、远程 head 和读回结果；不计入最终 open 数量。失败、跳过或状态不确定的
+操作如实报告，不能因为最终 open 清单为空就删除本轮处理记录。
+
 ## Findings
 
 ### [P1] `path:line` — Finding title
@@ -443,9 +466,4 @@ context.
 根据检查过的 PR 标题和正文、关联 issue、实际 diff 及相关周围代码构建
 `PR Context`。不要只是复述 PR 描述。每个子标题下写一个包含 2–4 句的自然段落。
 
-优先级含义：
-
-- `P0`：数据丢失、崩溃、安全缺陷或核心工作流损坏。
-- `P1`：很可能造成用户可见回归或错误行为。
-- `P2`：边界情况 bug、兼容性缺失或 issue 覆盖不完整。
-- `P3`：值得修复的可维护性、清晰度或测试/文档缺口。
+Finding 证据和优先级以通用 `review` 核心为准。
