@@ -21,7 +21,7 @@
 outdated 标记及本地未推送修复不能证明远程问题已消失。GitHub API 无 expected-head CAS，
 前后刷新减少但不能消除竞态，不把状态不确定报告为成功。
 
-reviewer 文件不硬编码模型，调用时保持主任务配置；配置优先级依据
+首轮 reviewer 文件不硬编码模型，调用时保持主任务配置；配置优先级依据
 [OpenAI 官方子代理文档](https://learn.chatgpt.com/docs/agent-configuration/subagents)。
 本次未热加载 custom reviewer，使用传入相同只读指令的独立子任务回退；tester 显式
 使用 gpt-5.6-terra/high。未访问真实 PR 执行 mutation。
@@ -49,3 +49,16 @@ reviewer 文件不硬编码模型，调用时保持主任务配置；配置优�
 ### 后续事项
 
 - 真实 GitHub 线程处理尚未进行线上验证；按 skill 在后续获准 PR review 中使用。
+
+### 后续调整：固定 reviewer 模型
+
+用户确认将 reviewer 改为 `gpt-6-astra` / `high`，避免审查配置随主任务变化。
+同步 reviewer 指令、任务收尾与显式回退说明；planner 的 Astra/high 和 tester 的
+Terra/high 保持不变，只读权限及任务边界不变。
+
+本轮初始 HEAD 为 `e37cf95b28066bb4908d43ca08f1185cbb2d718d`，staged、unstaged、
+untracked 均为空。允许及实际修改路径仅 reviewer TOML、`docs/agents/build-and-test.md`
+与本 history；实施授权包含自动本地提交，不推送。
+
+验证：三个子代理 TOML 解析及配置断言、planner/tester 无差异检查、当前规则一致性
+复核和 `git diff --check` 通过。未运行 Xcode，也未验证宿主热加载后的实际调用参数。

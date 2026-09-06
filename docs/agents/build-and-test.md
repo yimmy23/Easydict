@@ -30,9 +30,9 @@
 
 - 有实际行为风险的 implementation 初步完成后，优先同时启用只读 `reviewer` 和
   `tester`：前者使用 `.agents/skills/review/SKILL.md`，后者编写必要测试并验证。
-  reviewer 配置为 `.codex/agents/reviewer.toml`，不硬编码模型；调用时保持主任务模型与
-  推理强度，若宿主的 `[agents]` 默认值不同，显式传递主任务配置或说明无法保证继承。
-  tester 使用现有 `gpt-5.6-terra` 配置。简单文档、低风险配置或小改动不机械启动两个子代理。
+  reviewer 配置为 `.codex/agents/reviewer.toml`，固定使用 `gpt-6-astra` / `high`；
+  tester 使用 `gpt-5.6-terra` / `high`。模型与推理强度以各自 TOML 为准，
+  不随主任务模型切换。简单文档、低风险配置或小改动不机械启动两个子代理。
 - 主 Agent 在第一次写入前保存初始 HEAD、分层 diff、任务相关 untracked 内容与路径
   归属；交接时给出行为目标、允许范围和冻结实现快照。reviewer 独立判断，不能只
   读取作者总结。tester 只写分配的测试/fixture，主 Agent 暂停相关生产编辑直至首轮
@@ -44,7 +44,9 @@
   finding、失败验证或必要证据缺失时不能声称完成，也不能自动提交；继续可修复部分，
   需产品决策或新增授权时报告具体阻塞。
 - 不可委派时主 Agent 完成必要审查/验证并说明独立性缺失。custom reviewer 不可发现时，
-  读取其完整 TOML 指令，以继承模型的只读子任务显式回退，不声称已加载 custom role。
+  读取其 TOML 的模型、推理强度与完整指令，以相同配置的只读子任务显式回退，
+  不声称已加载 custom role。无法满足配置时说明原因，不静默替换；用户将精确配置
+  设为硬性要求时报告受阻部分，否则由主 Agent 完成必要审查并说明降级。
   reviewer 不递归委派、不修复、不处理 GitHub；远程动作由获准的 PR 适配器执行。
 - 单独 review 默认只读；此收尾规则不将 review、planning 或 staged 提交请求升级为
   修复任务，也不授权改写用户 staged 代码。测试运行的共享 workspace 约束仍然有效。
