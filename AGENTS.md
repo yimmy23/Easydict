@@ -53,7 +53,7 @@ Easydict 是一款 macOS 词典和翻译应用，支持查词、文本翻译、�
 ### PR review
 
 - 以 `.agents/skills/review-pr/SKILL.md` 为本仓库 PR review 完整流程的规范来源；Review 必须核对 GitHub PR 的准确 `headRefOid`，以真实 base diff 为准，并检查关联 issue、实际代码、相关上下文和 CI 状态，不能只依据 PR 描述或绿色检查。
-- 将所有 `isResolved == false` 的 inline review thread 逐条评估，包括 outdated thread、bot comment 和 replies。每个 open comment 的问题、证据、判断和 `Suggested Fix` 只放在 `Open Review Comments`；`Findings` 只记录具有独立触发条件、风险和修复方案的额外问题，禁止重复。
+- 将所有 `isResolved == false` 的 inline review thread 逐条评估，包括 outdated thread、bot comment 和 replies。已有评论的详细评估与修复建议只有一个归属，新增发现只记录独立问题，禁止重复；展示顺序、语言和按状态伸缩的格式以 review-pr skill 为准，不绑定固定英文栏目名。
 - 在最终输出前刷新 PR head、状态、checks 和完整分页的 review threads；若 head、评论、reply 或 thread 状态变化，先重新检查受影响代码。Review 默认不运行 `xcodebuild`，除非用户明确要求；保护用户已有变更和分支历史。
 - 明确调用 PR review 工作流时，默认包含本地准备及有远程代码证据的已解决/不再适用线程 resolve；用户要求只读或不处理评论时禁用 resolve。具体条件以 review-pr skill 为准，不包含 push、修复产品、发布评论、approve 或关闭 PR。
 

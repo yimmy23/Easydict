@@ -82,14 +82,15 @@ worktree、latest-base 合并与冲突修复仍按下文对应条件单独判断
 - 将 PR 反馈视为实时状态。打开 PR、将 draft 标记为 ready、bot workflow 和手动
   review 请求都可能在本地 review 期间新增 review 或 thread。编写最终回复时，绝不
   假设初始评论快照仍是最新状态。
-- 对每条评估为 `reasonable` 或 `partially reasonable` 的开放评论，提供单独的
-  `Suggested Fix`，并以实际 diff、周围代码和项目模式为依据。建议解决问题的最小
+- 对每条评估为 `reasonable` 或 `partially reasonable` 的开放评论，提供可定位的
+  修复建议，并以实际 diff、周围代码和项目模式为依据。建议解决问题的最小
   具体变更，相关时包含受影响逻辑、预期行为和针对性验证。即使评论来自 bot 也适用。
-  将完整评估和修复放在 `Open Review Comments` 中；不要在 `Findings` 重复同一问题。
-- 每个独立 finding 也提供同样具体的 `Suggested Fix`。只有触发条件、风险和修复方式
-  均与所有开放评论不同的问题才能出现在 `Findings`。
+  将完整评估和修复放在已有评论的对应条目中；同源线程可引用共用修复，
+  不要在新增发现中重复同一问题。
+- 每个独立 finding 也提供同样具体的修复建议。只有触发条件、风险和修复方式
+  均与所有已有评论不同的问题才能出现在新增发现中。
 - 不使用“修复此问题”等含糊建议。存在多种有效方案时，推荐一种并说明重要取舍。
-  如果修复取决于产品决策，给出条件选项，并在 `Open Questions` 中提出该决策。
+  如果修复取决于产品决策，给出条件选项，并在待确认决策中提出该决策。
 - 将修复建议视为 review 指导。除获准的线程维护外，未经授权不要修改 PR；只有短代码示例
   能明显提高建议清晰度时才加入。
 
@@ -250,13 +251,13 @@ reviewer 必须判断评论属于 `reasonable`、`partially reasonable`、`unrea
 `outdated/not applicable`，还是需要产品决策。
 
 对 `reasonable` 和 `partially reasonable` 评论，识别准确的行为风险，并提供具体的
-`Suggested Fix`、预期行为和针对性验证。对 `unreasonable` 或
+修复建议、预期行为和针对性验证。对 `unreasonable` 或
 `outdated/not applicable` 评论，说明用于否定或取代该担忧的代码证据。对需要产品决策
-的评论，推荐一个选项，提供其 `Suggested Fix`，并在 `Open Questions` 中重复尚未解决
+的评论，推荐一个选项，提供其修复建议，并在待确认决策中通过问题 ID 引用尚未解决
 的选择。每个已 review 问题只能分配到一个输出栏目。如果问题由开放 review 评论提出，
-其评估和修复只能放在 `Open Review Comments`，不要在 `Findings` 重复。`Findings`
-仅用于触发条件、风险和修复方式均不同的额外问题。清单为空时单独报告
-`No open review comments`。分配后没有其他问题时报告 `No additional findings`。
+其评估和修复只能放在已有评论的对应条目，不要在新增发现中重复。新增发现
+仅用于触发条件、风险和修复方式均不同的额外问题。最终报告明确交代开放线程数与
+独立新问题数；零项在摘要中说明，不为其创建空栏目。
 
 对于旧 PR 或 stale PR，在决定分支是否仍应保留前，检查关联 issue 历史、后续替代 PR
 和实时 base tree。当 mergeability 是 review 核心时，使用
@@ -308,9 +309,9 @@ gh pr checks <number> [--repo <base-owner>/<base-repo>]
 - 如果 `headRefOid` 发生变化，停止最终输出，将准备好的 checkout 更新到新 head，
   对照真实 base 检查新 diff，并重新验证此前 finding 和新变更。
 - 如果出现新的 review、thread、reply 或 resolution/outdated 状态变化，读取其准确
-  内容，结合当前 head 和周围代码验证，在 `Open Review Comments` 中新增或更新其独立
-  条目；只有再次 review 识别出不同的额外问题时才更新 `Findings`。最终输出前更新
-  `Open Questions` 和 `Verification`。对 reply 或 resolution/outdated 状态变化的
+  内容，结合当前 head 和周围代码验证，更新已有评论的对应条目；只有再次 review
+  识别出不同的额外问题时才更新新增发现。最终输出前更新待确认决策和审查范围与验证。
+  对 reply 或 resolution/outdated 状态变化的
   现有条目重新评估。自动化反馈和人工反馈使用相同处理方式。
 - 如果分析新活动后仍有足够时间出现另一条 review，再刷新一次。只有最新快照中没有
   未检查反馈时才完成。
@@ -327,143 +328,120 @@ gh pr checks <number> [--repo <base-owner>/<base-repo>]
 
 ## 输出格式
 
-使用用户当前请求的语言编写最终 review；未能确定时再参考当前对话及系统首选语言。
+### 阅读顺序与复杂度
 
-栏目标题、`PR Context` 子标题、优先级标签和 `Suggested Fix` 标签必须保持原样。严格
-使用以下结构：
+使用用户当前请求的语言；下面的中文标题和字段是语义示例，不是固定英文协议。
+保留 P0–P3 优先级和稳定问题 ID：C 表示已有评论、F 表示独立新发现、Q 表示待决事项。
+复审沿用能对应到同一问题的 ID，不因排序变化重新编号；无旧映射时明确建立本轮编号。
 
-对于 `Open Review Comments`，优先使用紧凑摘要行，随后每个 thread 使用一张 Markdown
-卡片。将评论 permalink 放在卡片标题中，不显示很长的原始 URL。path、line、author
-和 status 放在同一元数据行；将 `isResolved=false`、`isOutdated=false` 等原始
-GraphQL flag 翻译为输出首选语言中的简短自然语言状态标签。问题、证据/影响、评估和
-修复分别使用独立段落。只有存在回复时才包含 `Thread Replies` 区块。不要把所有元数据
-和正文塞进一个列表项，也不要使用表格或大段引用块承载 review 内容。
+1. **审查结论**：先说明代码审查建议、主要原因及下一步。CI 失败/pending、未完成的
+   必要验证或最终刷新缺口若影响判断，在开头明确说明；不能把“没有 finding”写成
+   “已验证可合并”。复杂报告增加跨来源按风险排序的行动索引，仅列 ID、短标题和动作，
+   不重复证据。需要背景才能理解时，先用一句话说明 PR 目标。
+2. **待处理问题**：需要修改或仍有实质争议的已有评论优先，独立新发现随后；各组按风险
+   排序。两组都有内容时使用独立的二级分区“待处理的已有评论”“新增发现”；只存在
+   一组时无需空分区。低优先级旧评论不能在开头行动索引遮蔽更高风险的新问题。
+3. **待确认决策**：只放影响正确性/范围且需要用户选择的事项，给出推荐与主要取舍；
+   关联已有问题时引用 ID，不重写其证据和修复方案。没有决策就省略。
+4. **旧评论与线程处理记录**：无需代码修改的评论逐条简述，保留原问题、当前代码证据、
+   判断、permalink 和实际线程状态。已修复或不再适用不等于已 resolve；权限不足、
+   只读未操作、失败、未知和未尝试分别说明。有效担忧或未答复的实质问题不能塞进
+   此处作为“已处理”。本轮 resolve 成功的记录不能因最终开放清单为空而消失。
+5. **审查范围与验证**：保留可复查的范围与证据，按下文记录。背景通常一小段即可，
+   不强制三个背景子标题或句数，不再追加重复结论的 Summary。
+
+简单 PR 只保留结论、必要问题和简短验证；不为了满足模板制造空栏目。摘要明确区分
+代码问题数、待决事项数和最终开放线程数，不能将“已修复但仍开放”从开放数里扣掉。
+多个线程指向同一问题时，每个线程保留链接、状态和独立判断，修复方案引用同一 ID；
+问题数去重，线程数不去重。
+
+复审开头突出“已修复、仍存在、新增”。只有具备准确的上轮快照才能作增量比较；
+没有旧快照时说明限制。精简背景不减少当前真实 base diff 和完整线程检查。
+所有回复仍需完整阅读；正文重点展示影响判断的实质回复及链接，其他回复可概括，
+不能省略未答复的实质问题。读者无需翻回上轮报告才能理解当前有效问题。
+
+### 问题呈现
+
+- 二级标题用于报告分区，三级标题用于具体问题，例如“### [P1] F1 — 回译方向错误”。
+  不继续堆叠小标题。卡片内使用“**证据：** 正文”等段内标签，不让标签独占一段。
+- 每个有效问题包含位置、触发条件、影响、代码证据、具体修复和针对性验证；
+  短问题可合并段落，复杂问题充分展开，不用机械字数上限截断关键证据。
+- 已有评论以 C 编号及评论 permalink 标明来源，新问题以 F 编号标明来源。评论判断用
+  自然语言表达，如“仍需修复”“部分成立”“已修复”“不再适用”“证据不足”；
+  不向读者堆砌 raw GraphQL flags 或 assessment 枚举。
+- 路径以短文件名链接呈现，必要时补目录区分同名文件。位置链接对应准确审查快照，
+  旧评论行号标记为原位置；不得凭旧行号生成当前 diff 链接。长 SHA 统一留在验证区。
+  位置、来源、状态可拆成两行，不把长路径、作者、状态挤成一行。
+- 长问题之间可使用横线；简短线程记录使用列表，不为每条重复全部字段标题。
+  复现步骤用有序列表，必要代码/命令才用代码块。避免宽表格、整段引用和密集嵌套。
+- 不依赖 HTML、折叠块、颜色、特殊卡片或页内锚点。标题、列表、横线前后保留空行，
+  使用通用 Markdown；问题 ID 本身就能帮助定位。
+- 摘要和行动索引可短引用已有问题，详细评估只能有一个归属；不得把旧评论重新包装
+  成新增 finding。展示层调整不改变 checkout、权限、resolve 条件或最终刷新流程。
+
+以下为复杂问题的结构示例，替换为实际证据，不照抄示例结论：
 
 ```markdown
-## PR Context
+## 审查结论：建议修复后再合并
 
-**Purpose and Scope**
+仍有 1 个 P1；另有 1 项范围决策待确认。旧评论的代码问题已修复，但线程仍开放。
+CI 尚未全部完成，未进行 UI 实测。
 
-Describe what the PR is trying to achieve, which issue or workflow it targets,
-and the boundary of the change.
+## 新增发现
 
-**Key Changes**
+### [P1] F1 — Auto 模式丢失实际回译方向
 
-Describe the main implementation changes and the important code paths touched.
+位置：准确快照中的文件位置链接
 
-**Review Focus**
+来源：本轮独立发现
 
-Describe the expected impact, important risks, compatibility concerns, or areas
-reviewers should inspect.
+**触发与影响：** 日语经 Auto 翻译为中文后，交换可能得到英语而不是日语。
 
----
+**证据：** 说明使用 Auto 占位值而非实际语言对的代码及相关调用链。
 
-## Open Review Comments
+**建议修复：** 保存原请求的有效语言对，再按原目标到原源发起查询。
 
-Open threads: <count> · Reasonable: <count> · Partially reasonable: <count> · Outdated: <count>
+**验证：** 覆盖 Auto、显式语言、未完成流式与 OCR 场景。
 
-### C1 — [Comment title](comment-permalink)
+## 待确认决策
 
-`path:line` · `author`
-Status: unresolved · current
+### Q1 — 是否同时支持 Auto → Auto？
 
-**Issue**
+推荐纳入并复用 F1 的有效语言对；否则默认配置仍无法使用此功能。
 
-Summarize the comment's concern and the trigger condition.
+## 旧评论与线程处理记录
 
-**Evidence / Impact**
+- **C1：按钮入口（评论链接）**：按钮与快捷键已共用路径（代码证据链接）；
+  代码已修复，线程仍开放（只读未操作）。
 
-Explain the current-code evidence and the user or system impact.
+## 审查范围与验证
 
-**Assessment**
+**范围与快照：** PR 目标、审查边界、完整远程 head SHA 和真实 base/merge-base。
 
-`reasonable`
+**检查与限制：** 实际执行的检查、CI 和未验证事项。
 
-**Suggested Fix:**
-
-Describe the smallest concrete remediation, expected behavior, and targeted
-verification.
-
-**Thread Replies**
-
-- [Author](reply-permalink): Summarize this reply. Use one bullet per reply
-  and retain the reply permalink.
-
-### C2 — [Another comment title](comment-permalink)
-
-`path:line` · `author`
-Status: unresolved · current
-
-**Issue**
-
-...
-
-**Evidence / Impact**
-
-...
-
-**Assessment**
-
-`outdated/not applicable`
-
-- Explain why the current code no longer requires a change. Do not invent a
-  `Suggested Fix` for this assessment.
-
-If there are no open review threads, write `No open review comments`.
-
-本轮已 resolve 的线程仍在本节单独标记“本轮已解决”，保留 permalink、原问题、
-代码证据、远程 head 和读回结果；不计入最终 open 数量。失败、跳过或状态不确定的
-操作如实报告，不能因为最终 open 清单为空就删除本轮处理记录。
-
-## Findings
-
-### [P1] `path:line` — Finding title
-
-**Evidence / Impact**
-
-Describe the distinct trigger, risk, and impact. This must not repeat an issue
-already represented in `Open Review Comments`.
-
-**Suggested Fix:**
-
-Describe the smallest concrete change, expected behavior, and targeted
-verification.
-
-If there are no additional issues, write `No additional findings`. Do not
-duplicate an open-comment assessment or invent a second fix for it.
-
-## Open Questions
-- List correctness-affecting questions, or say clearly that there are no
-  meaningful open questions.
-
-## Verification
-- List commands and checks performed, or explain why validation was not run.
-- State whether local or worktree preparation was used. For local preparation,
-  include the checkout branch and upstream when applicable. For worktree
-  preparation, include its absolute path, review branch, upstream or local-only
-  status, and confirm the source checkout remained unchanged.
-- When a collision fallback was used, name the
-  `review/pr-<number>-<head-short-sha>` branch and the collision reason.
-- State whether the latest-base merge action was triggered. If local mode was
-  used, name the selected head or collision-fallback branch and distinguish
-  the pre-merge `headRefOid` check from the post-merge head/base ancestry check.
-  If worktree mode was used, list the isolated merge branch, conflict files,
-  conflict resolution status, and confirm that no push was performed.
-- Report the final live-state refresh: final `headRefOid`, PR `updatedAt`, and
-  whether new reviews, threads, replies, or thread-state changes appeared after
-  the initial snapshot. Report the final open-comment inventory, whether any
-  additional findings remain, and state that every new or changed item was
-  individually assessed, or describe the remaining limitation.
-- Confirm that no push was performed unless the user explicitly asked for one.
-- If merge conflicts could not be resolved safely, report that blocker here and
-  do not claim that a full review was completed.
-
-## Summary
-Short neutral summary of the overall review result without repeating the PR
-context.
+**刷新与操作：** 最终线程计数、实时刷新结果及实际副作用。
 ```
 
-根据检查过的 PR 标题和正文、关联 issue、实际 diff 及相关周围代码构建
-`PR Context`。不要只是复述 PR 描述。每个子标题下写一个包含 2–4 句的自然段落。
+### 验证区的最低信息
+
+根据实际模式简述以下信息，不能因压缩报告而省略失败或范围限制：
+
+- PR 目标、关联 issue、主要变化与重要边界，不只复述 PR 描述。
+- 准确完整远程 head SHA、冻结 base/merge-base；latest-base 本地集成快照单列，
+  不替代远程证据。普通本地准备记录分支/upstream；worktree 模式记录其路径、
+  分支/upstream 或 local-only 状态，以及源 checkout 是否保持不变。
+- collision fallback 的分支和原因（如有）；latest-base 是否执行、实际 merge/冲突处理、
+  head/base ancestry 验证结果。无法安全解决的冲突明确作为审查限制。
+- 实际检查及结果、未运行事项和环境阻塞；CI 通过/失败/pending 与代码判断分开。
+- 最终刷新时的 head、PR updatedAt、完整线程及回复的覆盖情况、出现的新活动及复核结果。
+  初始开放、本轮 resolve 读回成功、最终开放分别计数；有外部新增/关闭/重开则解释差额。
+  刷新失败或状态未知时不宣称清单完整，也不编造最终计数。
+- 实际工作树/源码/Git/远程操作，特别是 resolve、提交 review、merge 与 push。
+  “未 push”不等于“未修改 GitHub”；成功、失败、跳过和结果不确定分别报告。
 
 Finding 证据和优先级以通用 `review` 核心为准。
+
+交付前核对成稿，而非只核对模板：行动索引按 P0 到 P3 跨来源排序（C/F 前缀不决定
+风险顺序），逐线程检查链接与真实状态是否齐全，并把权限/API 枚举转成自然语言。
+没有准确位置链接时保留文本位置并说明缺口，不用 PR 首页链接伪装成代码定位链接。
