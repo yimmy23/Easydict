@@ -9,8 +9,8 @@ description: >
 
 # 提交 GitHub PR
 
-把当前 checkout 中已经提交的连贯工作安全提交为 GitHub Pull Request。Skill 保存在
-当前仓库，但工作流本身不绑定特定项目、remote 名称或默认分支。
+把当前 checkout 中已经提交的连贯工作安全提交为 GitHub Pull Request。Skill 按标准
+项目级布局保存在 `.agents/skills/`，工作流不绑定特定项目、remote 名称或默认分支。
 
 ## 通用质量规则
 
@@ -24,6 +24,7 @@ description: >
   3. `验证 / Verification`
   4. `截图 / Screenshots`
 - 目标仓库模板中的兼容提示、checklist 和额外段落必须保留。
+- 目标仓库没有 PR 模板时使用内置四段式骨架，不创建模板文件，也不中断流程。
 - 非 UI 修改的截图段填写 `N/A`；UI 修改只提示用户在 GitHub PR 页面补充截图，不能
   因缺少截图中断流程。
 
