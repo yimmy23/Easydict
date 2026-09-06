@@ -17,6 +17,17 @@ description: >
 - 简写：`<base-owner>/<base-repo>#<number>`
 - 仅 PR 编号：当前 checkout 属于目标仓库时可用
 
+## 请求与准备权限
+
+明确请求按本 skill review PR，包含下述本地准备流程所需的 remote 添加、fetch、
+安全分支创建或 fast-forward、upstream 设置和 checkout；这不授权产品修复或远程
+写入。worktree、latest-base 合并与冲突修复仍按下文对应条件单独判断。
+
+仅要求方案或解释时不运行准备命令。用户要求不改变 Git 状态或不切分支时，优先遵守
+该限制，使用可访问的准确 PR diff、源码和评论进行只读检查；不要为满足默认流程绕过
+限制。只读证据不足时报告缺口，不声称已完成 checkout 验证。以下 checkout 步骤和
+禁止直接 review 已 fetch ref 的默认规则，仅适用于获准的本地准备模式。
+
 ## 安全约束
 
 - 从 `git status --short --branch` 开始。默认本地模式下，如果 checkout 存在未提交
@@ -297,8 +308,7 @@ gh pr checks <number> [--repo <base-owner>/<base-repo>]
 
 ## 输出格式
 
-除非用户另有要求，使用用户系统首选语言编写最终 review。系统首选语言是 macOS
-`AppleLanguages` 中的第一种语言；无法读取时使用当前对话语言。
+使用用户当前请求的语言编写最终 review；未能确定时再参考当前对话及系统首选语言。
 
 栏目标题、`PR Context` 子标题、优先级标签和 `Suggested Fix` 标签必须保持原样。严格
 使用以下结构：
